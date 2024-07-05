@@ -12,6 +12,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
     .action(async (_, arg) => {
       try {
         if (arg) {
+          if (!_.session.guildId) return;
           const findArg: IfindArg = {
             name: arg,
           };
@@ -56,6 +57,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
     .option("name", "<名称>")
     .option("address", "<地址:端口>")
     .action(async (_, name, address) => {
+      if (!_.session.guildId) return;
       if (!config.adminUsers.includes(String(_.session.event.user.id)))
         return "您没有操作服务器的权限";
       if (varkeys.includes(name)) return "服务器名称不合法";
@@ -93,6 +95,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
     .option("name", "<名称>")
     .action(async (_, name) => {
       try {
+        if (!_.session.guildId) return;
         if (!config.adminUsers.includes(String(_.session.event.user.id)))
           return "您没有操作服务器的权限";
         if (!name) return "请提供服务器名称";
