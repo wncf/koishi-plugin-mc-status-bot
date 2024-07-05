@@ -1,7 +1,15 @@
 {
-  "name": "koishi-plugin-mcbot",
-  "description": "轻松获取我的世界服务器列表信息",
-  "version": "0.0.1",
+  "name": "koishi-plugin-mc-status-bot",
+  "description": "轻松获取我的世界服务器信息",
+  "version": "1.0.0",
+  "contributors": [
+    "wncf"
+  ],
+  "homepage": "https://github.com/wncf/koishi-plugin-mc-status-bot",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wncf/koishi-plugin-mc-status-bot.git"
+  },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -11,12 +19,24 @@
   "license": "MIT",
   "scripts": {},
   "keywords": [
-    "chatbot",
+    "mcbot",
+    "mc-status-bot",
+    "mc",
+    "minecraft",
     "koishi",
     "plugin"
   ],
-  "devDependencies": {},
+  "koishi": {
+    "service": {
+      "required": [
+        "database"
+      ]
+    }
+  },
   "peerDependencies": {
     "koishi": "^4.17.9"
+  },
+  "dependencies": {
+    "@ahdg/minecraftstatuspinger": "^1.1.5"
   }
 }
