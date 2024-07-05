@@ -1,7 +1,10 @@
 import type { ImcServer } from "./../model/server";
 import { Context } from "koishi";
 import mc from "@ahdg/minecraftstatuspinger";
-
+export interface IfindArg {
+  name?: string;
+  groupId?: string;
+}
 export const varkeys = [
   "name",
   "list",
@@ -29,24 +32,17 @@ export class initMcBot {
     }
     return initMcBot.instance;
   }
-  findAll() {
-    return this.ctx.database.get("mcServerList", {});
+  findServer(findArg: IfindArg) {
+    return this.ctx.database.get("mcServerList", findArg);
   }
-  findByName(name: any) {
-    return this.ctx.database.get("mcServerList", {
-      name: name,
-    });
-  }
-  delteByName(name: any) {
-    return this.ctx.database.remove("mcServerList", {
-      name,
-    });
+  delteByName(findArg: IfindArg) {
+    return this.ctx.database.remove("mcServerList", findArg);
   }
   upsert(server: ImcServer) {
     return this.ctx.database.upsert("mcServerList", [server]);
   }
-  async pingServerList() {
-    const serverList = await this.findAll();
+  async pingServerList(findArg: IfindArg) {
+    const serverList = await this.findServer(findArg);
     const promiseList = [];
     let result = [];
     for (let item of serverList) {

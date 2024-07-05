@@ -1,17 +1,22 @@
 import { Context } from "koishi";
-import { initMcBot, varkeys } from "../utils";
+import { IfindArg, initMcBot, varkeys } from "../utils";
 import { mcFormat } from "../utils/mcFormat";
 import { Config } from "../index";
 
 export const registerCommands = (ctx: Context, config: Config) => {
   const mcBot = initMcBot.getInstance();
+  const { groupKeep } = config;
   ctx
     .command("mc")
     .option("name", "[服务器名称]")
     .action(async (_, arg) => {
       try {
         if (arg) {
-          const server = await mcBot.findByName(arg);
+          const findArg: IfindArg = {
+            name: arg,
+          };
+          if (groupKeep) findArg.groupId = _.session.event.channel.id;
+          const server = await mcBot.findServer(findArg);
           const oneServer = server[0];
           if (!oneServer) return `未找到${arg}服务器`;
           const address = `${oneServer.ip}:${oneServer.port}`;
@@ -29,7 +34,9 @@ export const registerCommands = (ctx: Context, config: Config) => {
             });
           return resultText;
         } else {
-          const data = await mcBot.pingServerList();
+          const findArg: IfindArg = {};
+          if (groupKeep) findArg.groupId = _.session.event.channel.id;
+          const data = await mcBot.pingServerList(findArg);
           if (!data.length) return "您还没添加任何服务器";
           let serverStrlist = [];
           data.forEach((item) => {
@@ -42,6 +49,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
         console.log(e, "出现错误");
       }
     });
+
   ctx
     .command("mc")
     .subcommand(".set")
@@ -88,7 +96,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         if (!config.adminUsers.includes(String(_.session.event.user.id)))
           return "您没有操作服务器的权限";
         if (!name) return "请提供服务器名称";
-        const { matched } = await mcBot.delteByName(name);
+
+        const findArg: IfindArg = { name };
+        if (groupKeep) findArg.groupId = _.session.event.channel.id;
+        const { matched } = await mcBot.delteByName(findArg);
         if (matched) {
           return "删除成功";
         } else {
