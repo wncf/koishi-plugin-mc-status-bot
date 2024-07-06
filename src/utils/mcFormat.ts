@@ -1,5 +1,7 @@
+import { ImcServer } from "../model/server";
 const transformText = (obj: any) => {
   let str = "";
+  if (obj.favicon) str += `<image src="${obj.favicon}"/>`;
   if (obj.name) str = str + `${obj.name}[${obj.address}]\n`;
   if (obj.version && obj.version.name)
     str = str + `版本：${obj.version.name}\n`;
@@ -25,4 +27,14 @@ export const mcFormat = (name: string, address: string, server: any) => {
     address,
     ...server,
   });
+};
+export const serverListFormat = (serverList: ImcServer[]) => {
+  const list = serverList.map((item) => {
+    let str = "";
+    str += `服务器名称： ${item.name}\n`;
+    str += `服务器ip： ${item.ip}\n`;
+    str += `服务器端口： ${item.port}\n`;
+    return str;
+  });
+  return list.join("***********************\n");
 };

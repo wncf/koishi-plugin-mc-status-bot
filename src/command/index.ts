@@ -1,58 +1,61 @@
 import { Context } from "koishi";
-import { IfindArg, initMcBot, varkeys } from "../utils";
-import { mcFormat } from "../utils/mcFormat";
+import { IfindArg, guoupArg, initMcBot, varkeys } from "../utils";
+import { mcFormat, serverListFormat } from "../utils/mcFormat";
 import { Config } from "../index";
 
 export const registerCommands = (ctx: Context, config: Config) => {
   const mcBot = initMcBot.getInstance();
   const { groupKeep } = config;
-  ctx
-    .command("mc")
-    .option("name", "[服务器名称]")
-    .action(async (_, arg) => {
-      try {
-        if (arg) {
-          if (!_.session.guildId) return;
-          const findArg: IfindArg = {
-            name: arg,
-          };
-          if (groupKeep) findArg.groupId = _.session.event.channel.id;
-          const server = await mcBot.findServer(findArg);
-          const oneServer = server[0];
-          if (!oneServer) return `未找到${arg}服务器`;
-          const address = `${oneServer.ip}:${oneServer.port}`;
-          let resultText = "";
-          await mcBot
-            .pingOneServer(oneServer)
-            .then((res) => {
-              resultText = mcFormat(oneServer.name, address, res.status);
-            })
-            .catch((err) => {
-              resultText = mcFormat(oneServer.name, address, {
-                rejected: true,
-                ...err,
-              });
+  const mcComand = ctx.command("mc", {
+    authority: 1,
+  });
+  mcComand.option("name", "[服务器名称]").action(async (_, arg) => {
+    try {
+      if (arg) {
+        if (!_.session.guildId) return;
+        const findArg: IfindArg = guoupArg(
+          groupKeep,
+          { name: arg },
+          { groupId: _.session.event.channel.id }
+        );
+        const server = await mcBot.findServer(findArg);
+        const oneServer = server[0];
+        if (!oneServer) return `未找到${arg}服务器`;
+        const address = `${oneServer.ip}:${oneServer.port}`;
+        let resultText = "";
+        await mcBot
+          .pingOneServer(oneServer)
+          .then((res) => {
+            resultText = mcFormat(oneServer.name, address, res.status);
+          })
+          .catch((err) => {
+            resultText = mcFormat(oneServer.name, address, {
+              rejected: true,
+              ...err,
             });
-          return resultText;
-        } else {
-          const findArg: IfindArg = {};
-          if (groupKeep) findArg.groupId = _.session.event.channel.id;
-          const data = await mcBot.pingServerList(findArg);
-          if (!data.length) return "您还没添加任何服务器";
-          let serverStrlist = [];
-          data.forEach((item) => {
-            const { name, address, status } = item;
-            serverStrlist.push(mcFormat(name, address, status));
           });
-          return serverStrlist.join("__________\n");
-        }
-      } catch (e) {
-        console.log(e, "出现错误");
+        return resultText;
+      } else {
+        const findArg: IfindArg = guoupArg(
+          groupKeep,
+          {},
+          { groupId: _.session.event.channel.id }
+        );
+        const data = await mcBot.pingServerList(findArg);
+        if (!data.length) return "您还没添加任何服务器";
+        let serverStrlist = [];
+        data.forEach((item) => {
+          const { name, address, status } = item;
+          serverStrlist.push(mcFormat(name, address, status));
+        });
+        return serverStrlist.join("***********************\n");
       }
-    });
+    } catch (e) {
+      console.log(e, "出现错误");
+    }
+  });
 
-  ctx
-    .command("mc")
+  mcComand
     .subcommand(".set")
     .option("name", "<名称>")
     .option("address", "<地址:端口>")
@@ -67,30 +70,43 @@ export const registerCommands = (ctx: Context, config: Config) => {
           const [ip, port] = address.split(":");
           let formatPort = 25565;
           if (port) formatPort = Number(port);
-          if (!formatPort) return "服务器端口不合法";
-          const server = await mcBot.upsert({
-            name: name,
-            ip: ip,
-            groupId: _.session.event.channel.id,
-            port: formatPort,
-          });
-          if (server.inserted) {
+          if (!formatPort || formatPort < 0 || formatPort > 65536)
+            return "服务器端口不合法";
+          const findArg: IfindArg = guoupArg(
+            groupKeep,
+            { name: name },
+            { groupId: _.session.event.channel.id }
+          );
+          const findServer = await mcBot.findServer(findArg);
+          let server = null;
+          if (!findServer.length) {
+            server = await mcBot.upsert({
+              name: name,
+              ip: ip,
+              groupId: _.session.event.channel.id,
+              port: formatPort,
+            });
+          } else {
+            server = await mcBot.upsert({
+              id: findServer[0].id,
+              name: name,
+              ip: ip,
+              groupId: _.session.event.channel.id,
+              port: formatPort,
+            });
+          }
+          if (!server) {
+            return "操作失败";
+          } else if (server.inserted) {
             return "新增成功";
           } else if (server.matched) {
             return "修改成功";
-          } else {
-            return "操作失败";
           }
         } catch (err) {
-          if (err.message.includes("UNIQUE constraint failed")) {
-            return "服务器名称已存在，请使用其他名称";
-          } else {
-            console.log(err, "出现错误");
-          }
+          console.log(err, "出现错误");
         }
     });
-  ctx
-    .command("mc")
+  mcComand
     .subcommand(".del")
     .option("name", "<名称>")
     .action(async (_, name) => {
@@ -109,11 +125,19 @@ export const registerCommands = (ctx: Context, config: Config) => {
           return "没有此名称的服务器";
         }
       } catch (err) {
-        if (err.message.includes("UNIQUE constraint failed")) {
-          return "名称已存在，请使用其他名称";
-        } else {
-          console.log(err, "出现错误");
-        }
+        console.log(err, "出现错误");
       }
     });
+
+  mcComand.subcommand(".list").action(async (_) => {
+    try {
+      if (!_.session.guildId) return;
+      const data = await mcBot.findServer({
+        groupId: _.session.guildId,
+      });
+      return serverListFormat(data);
+    } catch (err) {
+      console.log(err, "出现错误");
+    }
+  });
 };

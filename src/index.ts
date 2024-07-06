@@ -20,9 +20,7 @@ export const Config: Schema<Config> = Schema.object({
 });
 
 export async function apply(ctx: Context, config: Config) {
-  // write your plugin here
   initDataBase(ctx);
   initMcBot.getInstance(ctx);
-  // 添加中间件过滤私聊消息
   registerCommands(ctx, config);
 }

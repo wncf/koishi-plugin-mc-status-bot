@@ -82,3 +82,13 @@ export class initMcBot {
     });
   }
 }
+
+// 如果第一个参数为true,就合并后两则对象，否则就返回第二个对象
+export const guoupArg = (
+  groupKeep: boolean,
+  arg: IfindArg = {},
+  obj: any = {}
+) => {
+  if (groupKeep) return { ...arg, ...obj };
+  return arg;
+};
