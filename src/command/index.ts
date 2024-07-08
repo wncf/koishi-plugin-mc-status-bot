@@ -26,7 +26,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         await mcBot
           .pingOneServer(oneServer)
           .then((res) => {
-            resultText = mcFormat(oneServer.name, address, res.status);
+            resultText = mcFormat(oneServer.name, address, {
+              ...res.status,
+              latency: res.latency,
+            });
           })
           .catch((err) => {
             resultText = mcFormat(oneServer.name, address, {
@@ -45,8 +48,13 @@ export const registerCommands = (ctx: Context, config: Config) => {
         if (!data.length) return "您还没添加任何服务器";
         let serverStrlist = [];
         data.forEach((item) => {
-          const { name, address, status } = item;
-          serverStrlist.push(mcFormat(name, address, status));
+          const { name, address, status, latency } = item;
+          serverStrlist.push(
+            mcFormat(name, address, {
+              ...status,
+              latency,
+            })
+          );
         });
         return serverStrlist.join("***********************\n");
       }
@@ -154,7 +162,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         await mcBot
           .pingOneServer({ ip, port: formatPort })
           .then((res) => {
-            resultText = mcFormat("", address, res.status);
+            resultText = mcFormat("", address, {
+              ...res.status,
+              latency: res.latency,
+            });
           })
           .catch((err) => {
             resultText = mcFormat("", address, {

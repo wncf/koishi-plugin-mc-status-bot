@@ -50,6 +50,7 @@ export class initMcBot {
         mc.lookup({
           host: item.ip,
           port: item.port,
+          ping: true,
         })
       );
     }
@@ -60,6 +61,7 @@ export class initMcBot {
             name: serverList[index].name,
             address: `${serverList[index].ip}:${serverList[index].port}`,
             status: resArg.value.status,
+            latency: resArg.value.latency,
           });
         } else {
           result.push({
@@ -79,6 +81,7 @@ export class initMcBot {
     return mc.lookup({
       host: opt.ip,
       port: opt.port,
+      ping: true,
     });
   }
 }
