@@ -2,8 +2,8 @@ import { Context } from "koishi";
 
 export interface ImcServer {
   id?: number;
-  name: string;
-  groupId: string;
+  name?: string;
+  groupId?: string;
   ip: string;
   port?: number;
 }

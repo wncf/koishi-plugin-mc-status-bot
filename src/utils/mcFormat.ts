@@ -3,6 +3,8 @@ const transformText = (obj: any) => {
   let str = "";
   if (obj.favicon) str += `<image src="${obj.favicon}"/>`;
   if (obj.name) str = str + `${obj.name}[${obj.address}]\n`;
+  if (obj.description && obj.description.text)
+    str = str + `描述：${obj.description.text}\n`;
   if (obj.version && obj.version.name)
     str = str + `版本：${obj.version.name}\n`;
   if (obj.players) {
@@ -13,6 +15,8 @@ const transformText = (obj: any) => {
         .map((item: any) => `${item.name}`)
         .join(",")}\n`;
   }
+  if (obj.forgeData && obj.forgeData.mods && obj.forgeData.mods.length)
+    str = str + `mod数：${obj.forgeData.mods.length}\n`;
   if (obj.rejected) {
     str = str + `请求失败：${obj.code}\n`;
     str = str + `错误代码：${obj.errno}\n`;

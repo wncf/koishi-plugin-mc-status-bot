@@ -140,4 +140,31 @@ export const registerCommands = (ctx: Context, config: Config) => {
       console.log(err, "出现错误");
     }
   });
+  // 临时ping
+  mcComand
+    .subcommand(".ping")
+    .option("address", "<地址:端口>")
+    .action(async (_, address) => {
+      try {
+        if (!address) return "请提供服务器的地址:端口";
+        const [ip, port] = address.split(":");
+        let formatPort = 25565;
+        if (port) formatPort = Number(port);
+        let resultText = "";
+        await mcBot
+          .pingOneServer({ ip, port: formatPort })
+          .then((res) => {
+            resultText = mcFormat("", address, res.status);
+          })
+          .catch((err) => {
+            resultText = mcFormat("", address, {
+              rejected: true,
+              ...err,
+            });
+          });
+        return resultText;
+      } catch (err) {
+        console.log(err, "出现错误");
+      }
+    });
 };
