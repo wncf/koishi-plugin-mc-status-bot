@@ -27,7 +27,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
           .pingOneServer(oneServer)
           .then((res) => {
             resultText = mcFormat(oneServer.name, address, {
-              ...res.status,
+              ...res,
               latency: res.latency,
             });
           })
@@ -163,7 +163,7 @@ export const registerCommands = (ctx: Context, config: Config) => {
           .pingOneServer({ ip, port: formatPort })
           .then((res) => {
             resultText = mcFormat("", address, {
-              ...res.status,
+              ...res,
               latency: res.latency,
             });
           })

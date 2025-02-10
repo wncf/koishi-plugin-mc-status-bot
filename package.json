@@ -37,6 +37,6 @@
     "koishi": "^4.17.9"
   },
   "dependencies": {
-    "@ahdg/minecraftstatuspinger": "^1.1.5"
+    "minecraft-protocol": "^1.54.0"
   }
 }
