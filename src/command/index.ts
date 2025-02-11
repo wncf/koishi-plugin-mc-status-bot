@@ -48,10 +48,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         if (!data.length) return "您还没添加任何服务器";
         let serverStrlist = [];
         data.forEach((item) => {
-          const { name, address, status, latency } = item;
+          const { name, address, latency, ...res } = item;
           serverStrlist.push(
             mcFormat(name, address, {
-              ...status,
+              ...res,
               latency,
             })
           );

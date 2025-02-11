@@ -1,6 +1,6 @@
 import type { ImcServer } from "./../model/server";
 import { Context } from "koishi";
-import mcProtocol from "minecraft-protocol";
+import { mcPing } from "./ping";
 export interface IfindArg {
   name?: string;
   groupId?: string;
@@ -47,13 +47,13 @@ export class initMcBot {
     let result = [];
     for (let item of serverList) {
       promiseList.push(
-        mcProtocol.ping(
+        mcPing(
           {
             host: item.ip,
             port: item.port,
           },
           (error, result) => {
-            if (error) return Promise.reject(error);
+            if (error) throw error;
             return Promise.resolve(result);
           }
         )
@@ -65,8 +65,8 @@ export class initMcBot {
           result.push({
             name: serverList[index].name,
             address: `${serverList[index].ip}:${serverList[index].port}`,
-            status: resArg.value.status,
             latency: resArg.value.latency,
+            ...resArg.value,
           });
         } else {
           result.push({
@@ -83,16 +83,10 @@ export class initMcBot {
     return result;
   }
   async pingOneServer(opt: ImcServer): Promise<any> {
-    return mcProtocol.ping(
-      {
-        host: opt.ip,
-        port: opt.port,
-      },
-      (error, result) => {
-        if (error) return Promise.reject(error);
-        return Promise.resolve(result as any);
-      }
-    );
+    return mcPing({
+      host: opt.ip,
+      port: opt.port,
+    });
   }
 }
 
