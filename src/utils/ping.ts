@@ -3,8 +3,8 @@
 import Client from "minecraft-protocol/src/client";
 import states from "minecraft-protocol/src/states";
 import tcpDns from "minecraft-protocol/src/client/tcp_dns";
-
-
+import mcVersion from "minecraft-protocol/src/version";
+import minecraftData from "minecraft-data";
 
 export function mcPing(options, cb?: (err: any, data: any) => void) {
   const pingPromise = ping(options);
@@ -23,9 +23,8 @@ export function mcPing(options, cb?: (err: any, data: any) => void) {
 function ping(options) {
   options.host = options.host || "localhost";
   options.port = options.port || 25565;
-  const optVersion =
-    options.version || require("minecraft-protocol/src/version").defaultVersion;
-  const mcData = require("minecraft-data")(optVersion);
+  const optVersion = options.version || mcVersion.defaultVersion;
+  const mcData = minecraftData(optVersion);
   const version = mcData.version;
   options.majorVersion = version.majorVersion;
   options.protocolVersion = version.version;
