@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-mc-status-bot?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-mc-status-bot)
 
-#### 轻松获取我的世界服务器状态信息
+#### 轻松获取我的世界java服务器状态信息
 
 - **主命令：mc**
 
