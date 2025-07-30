@@ -36,7 +36,6 @@
     "koishi": "^4.17.9"
   },
   "dependencies": {
-    "minecraft-data": "^3.83.1",
-    "minecraft-protocol": "^1.54.0"
+    "varint": "^6.0.0"
   }
 }

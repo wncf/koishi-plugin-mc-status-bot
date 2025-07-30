@@ -1,11 +1,9 @@
 "use strict";
-
-import Client from "minecraft-protocol/src/client";
-import states from "minecraft-protocol/src/states";
-import tcpDns from "minecraft-protocol/src/client/tcp_dns";
-import mcVersion from "minecraft-protocol/src/version";
-import minecraftData from "minecraft-data";
-
+import varint from "varint";
+import net from "net";
+const encoded = Buffer.from(varint.encode(255));
+const defavlueMajorVersion = "1.21";
+const defaultProtocol = 767;
 export function mcPing(options, cb?: (err: any, data: any) => void) {
   const pingPromise = ping(options);
   if (cb) {
@@ -19,65 +17,87 @@ export function mcPing(options, cb?: (err: any, data: any) => void) {
   }
   return pingPromise;
 }
+function encodeString(str) {
+  const strBuf = Buffer.from(str, "utf8");
+  const lenBuf = Buffer.from(varint.encode(strBuf.length));
+  return Buffer.concat([lenBuf, strBuf]);
+}
+
+function encodeVarInt(value) {
+  return Buffer.from(varint.encode(value));
+}
+function createPacket(id, data) {
+  const idBuf = encodeVarInt(id);
+  const packetData = Buffer.concat([idBuf, data]);
+  const lengthBuf = encodeVarInt(packetData.length);
+  return Buffer.concat([lengthBuf, packetData]);
+}
 
 function ping(options) {
-  options.host = options.host || "localhost";
-  options.port = options.port || 25565;
-  const optVersion = options.version || mcVersion.defaultVersion;
-  const mcData = minecraftData(optVersion);
-  const version = mcData.version;
-  options.majorVersion = version.majorVersion;
-  options.protocolVersion = version.version;
-  let closeTimer = null;
-  options.closeTimeout = options.closeTimeout || 120 * 1000;
-  options.noPongTimeout = options.noPongTimeout || 5 * 1000;
+  const host = options.host || "localhost";
+  const port = options.port || 25565;
+  options.majorVersion = options.version || defavlueMajorVersion;
+  const protocolVersion = options.protocol || defaultProtocol;
 
-  const client = new Client(false, version.minecraftVersion, null, true);
+  const closeTimeout = options.closeTimeout || 20 * 1000; //超时时间
+
   return new Promise((resolve, reject) => {
-    client.on("error", function (err) {
-      clearTimeout(closeTimer);
-      client.end();
-      reject(err);
+    const client = net.createConnection({
+      host: host,
+      port: port,
     });
-    client.once("server_info", function (packet) {
-      const data = JSON.parse(packet.response);
-      const start = Date.now();
-      const maxTime = setTimeout(() => {
-        clearTimeout(closeTimer);
+    let buffer = Buffer.alloc(0);
+    let startTime = null; // 记录开始时间
+    const onData = (chunk) => {
+      buffer = Buffer.concat([buffer, chunk]);
+      try {
+        const length = varint.decode(buffer);
+        const offset1 = varint.decode.bytes;
+        const packetId = varint.decode(buffer.slice(offset1));
+        const offset2 = offset1 + varint.decode.bytes;
+        const stringLength = varint.decode(buffer.slice(offset2));
+        const offset3 = offset2 + varint.decode.bytes;
+        // 判断包是否完整
+        // if (buffer.length < length + varint.decode.bytes) return;
+        const jsonString = buffer
+          .slice(offset3, offset3 + stringLength)
+          .toString();
+        const status = JSON.parse(jsonString);
+        const latency = Date.now() - startTime; // 计算延迟
         client.end();
-        resolve(data);
-      }, options.noPongTimeout);
-      client.once("ping", function (packet) {
-        data.latency = Date.now() - start;
-        clearTimeout(maxTime);
-        clearTimeout(closeTimer);
-        client.end();
-        resolve(data);
-      });
-      client.write("ping", { time: [0, 0] });
-    });
-    client.on("state", function (newState) {
-      if (newState === states.STATUS) {
-        client.write("ping_start", {});
+        resolve({
+          ...status,
+          latency: latency,
+        });
+      } catch (e) {
+        // client.destroy();
+        // reject(new Error(`数据解析失败: ${e}`));
       }
+    };
+    client.setTimeout(closeTimeout, () => {
+      client.destroy();
+      reject(new Error("连接超时"));
     });
-    // TODO: refactor with src/client/setProtocol.js
-    client.on("connect", function () {
-      client.write("set_protocol", {
-        protocolVersion: options.protocolVersion,
-        serverHost: options.host,
-        serverPort: options.port,
-        nextState: 1,
-      });
-      client.state = states.STATUS;
+
+    client.on("error", reject);
+    client.on("data", onData);
+    client.once("connect", () => {
+      // 构建 handshake 数据
+      const handshakeData = Buffer.concat([
+        encodeVarInt(protocolVersion), // 协议版本
+        encodeString(host), // 主机名
+        Buffer.from([(port >> 8) & 0xff, port & 0xff]), // 端口（2 字节）
+        Buffer.from([0x01]), // 下一状态：1 = status
+      ]);
+
+      // 发送 handshake 包（packetId = 0x00）
+      const handshakePacket = createPacket(0x00, handshakeData);
+
+      // 发送 status 请求包（packetId = 0x00，无数据）
+      const requestPacket = createPacket(0x00, Buffer.alloc(0));
+
+      startTime = Date.now();
+      client.write(Buffer.concat([handshakePacket, requestPacket]));
     });
-    // timeout against servers that never reply while keeping
-    // the connection open and alive.
-    closeTimer = setTimeout(function () {
-      client.end();
-      reject(new Error("ETIMEDOUT"));
-    }, options.closeTimeout);
-    tcpDns(client, options);
-    options.connect(client);
   });
 }
