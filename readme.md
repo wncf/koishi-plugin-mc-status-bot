@@ -72,3 +72,5 @@ adminUsers: 有权限进行操作的用户id
 
 groupKeep: 是否开启群组隔离，开启后在哪里添加的服务器只能在哪里看到
 
+descriptionFormatting: 启用后，将移除描述中的颜色代码、插件标签等非纯文本内容。
+
