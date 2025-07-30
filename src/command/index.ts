@@ -26,10 +26,15 @@ export const registerCommands = (ctx: Context, config: Config) => {
         await mcBot
           .pingOneServer(oneServer)
           .then((res) => {
-            resultText = mcFormat(oneServer.name, address, {
-              ...res,
-              latency: res.latency,
-            });
+            resultText = mcFormat(
+              oneServer.name,
+              address,
+              {
+                ...res,
+                latency: res.latency,
+              },
+              config
+            );
           })
           .catch((err) => {
             resultText = mcFormat(oneServer.name, address, {
@@ -50,10 +55,15 @@ export const registerCommands = (ctx: Context, config: Config) => {
         data.forEach((item) => {
           const { name, address, latency, ...res } = item;
           serverStrlist.push(
-            mcFormat(name, address, {
-              ...res,
-              latency,
-            })
+            mcFormat(
+              name,
+              address,
+              {
+                ...res,
+                latency,
+              },
+              config
+            )
           );
         });
         return serverStrlist.join("***********************\n");
@@ -162,10 +172,15 @@ export const registerCommands = (ctx: Context, config: Config) => {
         await mcBot
           .pingOneServer({ ip, port: formatPort })
           .then((res) => {
-            resultText = mcFormat("", address, {
-              ...res,
-              latency: res.latency,
-            });
+            resultText = mcFormat(
+              "",
+              address,
+              {
+                ...res,
+                latency: res.latency,
+              },
+              config
+            );
           })
           .catch((err) => {
             resultText = mcFormat("", address, {

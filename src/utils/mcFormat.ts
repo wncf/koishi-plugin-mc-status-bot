@@ -1,13 +1,20 @@
+import { removeMinecraftFormatting } from ".";
 import { ImcServer } from "../model/server";
-const transformText = (obj: any) => {
+
+const transformText = (obj: any, opt?: any) => {
   let str = "";
+  const handlDescriptionFormatting =
+    opt && opt.descriptionFormatting
+      ? removeMinecraftFormatting
+      : (t: string) => t;
+
   if (obj.favicon) str += `<image src="${obj.favicon}"/>`;
   if (obj.name) str = str + `${obj.name}[${obj.address}]\n`;
   if (obj.description && obj.description.text) {
-    str = str + `描述：${obj.description.text}\n`;
+    str = str + `描述：${handlDescriptionFormatting(obj.description.text)}\n`;
     // 兼容1.17.10 描述
   } else if (typeof obj.description === "string") {
-    str = str + `描述：${obj.description}\n`;
+    str = str + `描述：${handlDescriptionFormatting(obj.description)}\n`;
   }
   if (obj.latency) str = str + `延迟：${obj.latency}ms\n`;
   if (obj.version && obj.version.name)
@@ -35,13 +42,21 @@ const transformText = (obj: any) => {
   }
   return str;
 };
-export const mcFormat = (name: string, address: string, server: any) => {
+export const mcFormat = (
+  name: string,
+  address: string,
+  server: any,
+  options?: any
+) => {
   if (!server) return "";
-  return transformText({
-    name,
-    address,
-    ...server,
-  });
+  return transformText(
+    {
+      name,
+      address,
+      ...server,
+    },
+    options
+  );
 };
 export const serverListFormat = (serverList: ImcServer[]) => {
   const list = serverList.map((item) => {

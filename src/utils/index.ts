@@ -99,3 +99,17 @@ export const guoupArg = (
   if (groupKeep) return { ...arg, ...obj };
   return arg;
 };
+
+export function removeMinecraftFormatting(text: string): string {
+  if (typeof text !== "string") return "";
+  // 1. 去除 Minecraft 格式代码
+  text = text.replace(/§[0-9a-fk-or]/gi, "");
+  // 2. 去除插件自定义标签（示例）
+  text = text.replace(/<[^>]*>|{[^}]*}|%[^%]+%/g, "");
+  // 3. 去除不可见控制字符
+  text = text.replace(
+    /[\u0000-\u001F\u007F\u0080-\u009F\u200B-\u200D\uFEFF]/g,
+    ""
+  );
+  return text.trim();
+}
