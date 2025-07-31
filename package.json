@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-mc-status-bot",
   "description": "轻松获取我的世界服务器信息",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "contributors": [
     "wncf"
   ],
