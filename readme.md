@@ -77,7 +77,3 @@ mc-status-bot:
 
 • 几乎支持所有标准Minecraft Java版服务端（Vanilla/Forge/Fabric等）
 • 需要服务器开启TCP ping响应（默认25565端口）
-• 群组隔离模式下，不同群组的服务器列表相互独立
-
-descriptionFormatting: 启用后，将移除描述中的颜色代码、插件标签等非纯文本内容。
-
