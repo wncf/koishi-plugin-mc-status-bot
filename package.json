@@ -36,6 +36,7 @@
     "koishi": "^4.17.9"
   },
   "dependencies": {
+    "minecraft-server-util": "^5.4.4",
     "varint": "^6.0.0"
   }
 }

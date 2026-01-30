@@ -3,9 +3,10 @@ import { Context } from "koishi";
 export interface ImcServer {
   id?: number;
   name?: string;
-  groupId?: string;
+  serverId?: string;
   ip: string;
   port?: number;
+  enableQuery?: boolean;
 }
 
 declare module "koishi" {
@@ -15,7 +16,7 @@ declare module "koishi" {
 }
 
 export const initDataBase = (ctx: Context) => {
-  ctx.model.extend(
+  return ctx.model.extend(
     "mcServerList",
     {
       id: {
@@ -27,7 +28,7 @@ export const initDataBase = (ctx: Context) => {
         length: 20,
         nullable: false,
       },
-      groupId: {
+      serverId: {
         type: "string",
         length: 20,
         nullable: false,
@@ -43,11 +44,14 @@ export const initDataBase = (ctx: Context) => {
         length: 5,
         initial: 25565,
       },
+      enableQuery: {
+        type: "boolean",
+        initial: false,
+      }
     },
     {
       primary: "id",
       autoInc: true,
-      unique: ["name"],
     }
   );
 };

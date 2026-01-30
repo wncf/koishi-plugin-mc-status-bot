@@ -36,9 +36,12 @@ const transformText = (obj: any, opt?: any) => {
   }
 
   if (obj.rejected) {
+    if (obj.message) str = str + `错误信息：${obj.message}\n`;
     if (obj.code) str = str + `请求失败：${obj.code}\n`;
     if (obj.errno) str = str + `错误代码：${obj.errno}\n`;
-    str = str + `服务器地址错误或者服务器未启动\n`;
+    if (!obj.message && !obj.code && !obj.errno) {
+      str = str + `服务器地址错误或者服务器未启动\n`;
+    }
   }
   return str;
 };
@@ -64,6 +67,7 @@ export const serverListFormat = (serverList: ImcServer[]) => {
     str += `服务器名称： ${item.name}\n`;
     str += `服务器ip： ${item.ip}\n`;
     str += `服务器端口： ${item.port}\n`;
+    str += `Query查询： ${item.enableQuery ? "是" : "否"}\n`;
     return str;
   });
   return list.join("***********************\n");
