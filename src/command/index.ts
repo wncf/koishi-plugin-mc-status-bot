@@ -33,7 +33,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         if (oneServer.enableQuery) {
           try {
             const queryResult = await onEnableQuery(oneServer.ip, oneServer.port)
-            const resultText = queryResultFormat(queryResult, config.descriptionFormatting);
+            const resultText = queryResultFormat(queryResult, {
+              description: `${oneServer.name}[${oneServer.ip}:${oneServer.port}]`,
+              hasForMotd: config.descriptionFormatting,
+            });
             return resultText;
           } catch (err) {
             console.log(err, 'enableQuery error');
@@ -195,7 +198,10 @@ export const registerCommands = (ctx: Context, config: Config) => {
         if (port) formatPort = Number(port);
         if (enableQuery) {
           const queryResult = await onEnableQuery(ip, Number(port));
-          const resultText = queryResultFormat(queryResult, config.descriptionFormatting);
+          const resultText = queryResultFormat(queryResult, {
+            description: '',
+            hasForMotd: config.descriptionFormatting,
+          });
           return resultText;
         } else {
           let resultText = "";
